@@ -13,18 +13,41 @@
 
 ## 用法
 
-安装到当前目录
+编译安装项目
 
 ```bash
-# 添加一些build参数，用来去除二进制文件中的调试符合，减小文件尺寸
-GOBIN=`pwd`/bin CGO_ENABLE=0 go install -gcflags="all=-N -l" -ldflags='-w -s' -trimpath https://github.com/gnuos/ghproxy@latest
+git clone https://github.com/gnuos/ghproxy.git
+
+cd ghproxy
+
+# 可以执行下面的命令手动安装just，也可以跳过
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ./bin
+
+# 如果按照上面安装了just，就执行下面的命令
+./bin/just build
+
+# 否则执行下面的命令手动编译
+CGO_ENABLE=0 go build -buildvcs=false -gcflags="all=-N -l" -ldflags='-w -s -buildid=' -trimpath -o bin/ .
+
+# 编译完之后执行下面命令检查二进制文件是否可用
+./bin/ghproxy -h
+
 ```
 
-从仓库里下载cfg.hcl文件，和安装的二进制文件放到一起
+安装到系统中
 
 ```bash
 # 给文件设置可执行权限
-chmod +x ghproxy
+
+chmod +x ./bin/ghproxy
+
+# 复制到/usr/local/bin目录中
+
+cp -fv ./bin/ghproxy
+
+# 复制配置文件到/etc下面，也可以复制到自己主目录里面，文件名改成 .cfg.hcl
+cp -v cfg.hcl /etc/ghproxy.hcl
+
 ```
 
 ## 使用说明
@@ -40,7 +63,7 @@ chmod +x ghproxy
 项目有一部分代码是复制了HubProxy的代码，主要是处理重定向链接的那部分，还有处理powershell脚本和shell脚本的那部分，用于方便用户直接请求获取单个文件的。
 
 
-## 配置启动服务
+## 配置systemd启动服务
 
 ```systemd
 [Unit]
@@ -48,8 +71,10 @@ Description=ghproxy server
 After=network.target
 
 [Service]
+Environment=GHPROXY_OPTS="-c /etc/ghproxy.hcl"
+
 Type=notify
-ExecStart=/usr/local/bin/ghproxy
+ExecStart=/usr/local/bin/ghproxy ${GHPROXY_OPTS}
 TimeoutStopSec=5s
 LimitNOFILE=1048576
 LimitNPROC=512
@@ -65,4 +90,21 @@ KillSignal=SIGINT
 WantedBy=multi-user.target
 ```
 
+
+将上面的服务文件内容复制保存到 /etc/systemd/system/ 目录中的服务文件里，里面的ExecStart后面的命令可以自己进行调整。
+
+
+## 设置自动启动
+
+```bash
+systemctl daemon-reload
+
+# 允许随系统自动启动，这一步可选
+systemctl enable ghproxy
+
+# 启动服务
+
+systemctl start ghproxy
+
+```
 
