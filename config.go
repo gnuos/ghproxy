@@ -9,7 +9,6 @@ import (
 var cfg *Config
 
 type Config struct {
-	Fork         bool     `hcl:"fork,optional"`
 	ProxyEnabled bool     `hcl:"proxy_enabled,optional"`
 	LogLevel     string   `hcl:"log_level,optional"`
 	Listen       string   `hcl:"listen,optional"`

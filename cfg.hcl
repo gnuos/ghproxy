@@ -1,11 +1,8 @@
-# 取消注释这个参数，可以开启Fiber框架的多进程架构，这样可以把并发能力提升至少两倍
-# fork = true
-
 # 配置项的默认值是 :3000，取消注释这个参数可以定义自己要监听的地址和端口
 # listen = "0.0.0.0:3000"
 
 proxy = "socks5://127.0.0.1:7890"
-proxy_enabled = true
+proxy_enabled = false
 
 # 日志级别参考Fiber框架的日志定义
 # 常用的日志级别有：debug | info | warn | error | trace

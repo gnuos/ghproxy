@@ -179,9 +179,9 @@ func proxyGitHubWithRedirect(c *fiber.Ctx, u string, redirectCount int) error {
 
 		// 智能设置响应头
 		if processedSize > 0 {
-			resp.Header.Del("Content-Length")
-			resp.Header.Del("Content-Encoding")
-			resp.Header.Set("Transfer-Encoding", "chunked")
+			c.Response().Header.Del("Content-Length")
+			c.Response().Header.Del("Content-Encoding")
+			c.Response().Header.Set("Transfer-Encoding", "chunked")
 		}
 	}
 

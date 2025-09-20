@@ -22,11 +22,7 @@ var homePage []byte
 func startWeb() {
 	setLog(cfg.LogLevel)
 
-	app := fiber.New(fiber.Config{
-		Prefork:      cfg.Fork,
-		ServerHeader: "gofiber",
-		UnescapePath: true,
-	})
+	app := fiber.New()
 
 	app.Use(recover.New())
 	app.Use(etag.New())
