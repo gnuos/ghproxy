@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 )
 
-func isValidUrl(cfg *Config, uri string) bool {
-	for _, rule := range cfg.Rules {
+func isValidUrl(rules []string, uri string) bool {
+	for _, rule := range rules {
 		m, err := regexp.MatchString(rule, uri)
 		if err != nil {
 			log.Error(err)

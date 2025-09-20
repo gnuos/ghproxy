@@ -27,7 +27,6 @@ var blockedContentTypes = map[string]bool{
 // GitHubProxyHandler GitHub代理处理器
 func GitHubProxyHandler(c *fiber.Ctx) error {
 	rawPath := c.Params("*")
-	cfg := c.Locals("config").(Config)
 
 	for strings.HasPrefix(rawPath, "/") {
 		rawPath = strings.TrimPrefix(rawPath, "/")
@@ -43,7 +42,7 @@ func GitHubProxyHandler(c *fiber.Ctx) error {
 		rawPath = "https://" + rawPath
 	}
 
-	if !isValidUrl(&cfg, rawPath) {
+	if !isValidUrl(cfg.Rules[:], rawPath) {
 		return c.Status(fiber.StatusForbidden).SendString("无效请求")
 	}
 
@@ -66,8 +65,6 @@ func proxyGitHubWithRedirect(c *fiber.Ctx, u string, redirectCount int) error {
 	if redirectCount > maxRedirects {
 		return c.Status(fiber.StatusLoopDetected).SendString("重定向次数过多，可能存在循环重定向")
 	}
-
-	cfg := c.Locals("config").(Config)
 
 	agent := getFiberAgent(u)
 	agent.Request().Header.SetMethod(c.Method())
@@ -133,7 +130,7 @@ func proxyGitHubWithRedirect(c *fiber.Ctx, u string, redirectCount int) error {
 	// 重定向之后的内容会自动发送 text/html 的内容类型头信息
 	// 这样会被检测规则给拒绝，所以要先把text/html
 	if location := string(resp.Header.Peek("Location")); location != "" {
-		if isValidUrl(&cfg, u) {
+		if isValidUrl(cfg.Rules[:], u) {
 			c.Set(fiber.HeaderLocation, "/"+location)
 			return c.SendStatus(resp.StatusCode())
 		} else {

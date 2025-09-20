@@ -27,20 +27,16 @@ func startWeb() {
 	app.Use(recover.New())
 	app.Use(etag.New())
 
-	app.Use(logger.New(logger.Config{
-		TimeFormat: time.RFC3339Nano,
-		TimeZone:   "Asia/Shanghai",
-	}))
+	if cfg.LogLevel == "debug" {
+		app.Use(logger.New(logger.Config{
+			TimeFormat: time.RFC3339Nano,
+			TimeZone:   "Asia/Shanghai",
+		}))
+	}
 
 	app.Use(favicon.New(favicon.Config{
 		Data: icon,
 	}))
-
-	app.Use("/*", func(c *fiber.Ctx) error {
-		c.Locals("config", *cfg)
-
-		return c.Next()
-	})
 
 	app.Head("*", func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusOK)
@@ -58,8 +54,9 @@ func startWeb() {
 		return c.Send(homePage)
 	})
 
-	app.Get("/*", GitHubProxyHandler)
-	app.Post("/*", GitHubProxyHandler)
+	g := app.Group("/")
+
+	g.All("*", GitHubProxyHandler)
 
 	log.Fatal(app.Listen(cfg.Listen))
 }
